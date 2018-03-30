@@ -92,6 +92,6 @@ if __name__ == '__main__':
     lines.remove('')
     goods_sn = set(lines)
     map(spider, goods_sn)
-    # print(u'爬虫运行结束')
+    print(u'爬虫运行结束')
 
 

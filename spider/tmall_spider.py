@@ -25,7 +25,7 @@ global logger
 
 class DetailState(State):
     '''抓取商品详情状态'''
-    logger_name = 'spider_uv'
+    logger_name = 'spider_process'
     __name__ = 'Detail'
 
     def __init__(self, main_data_queue, comment_data_queue):
@@ -137,14 +137,14 @@ class DetailState(State):
         main_data_pack.update({'c_prop_neg_tag':self.c_neg_tags})
         main_data_pack.update({'c_main_outer_id':self.c_main_outer_id})
         global logger
-        logger.info('main_data_pack %s'%main_data_pack)
+        # logger.info('main_data_pack %s'%main_data_pack)
         self.data_queue.append(main_data_pack)  # 主数据包入队列
         self.data_queue.append('close')  # 传入关闭进程指令
         return self.success_state
 
 class CommentState(State):
     '''抓取评论状态'''
-    logger_name = 'spider_uv'
+    logger_name = 'spider_process'
     __name__ = 'Comment'
 
     def __init__(self, data_queue):
@@ -163,7 +163,7 @@ class CommentState(State):
                 selected = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                   xpath="//span[@class='tag-neg'][" + str(tag_cnt) + "]/a",
                                                   operator='get_attribute', key='class')
-                logger.info('neg selected:%s' % selected)
+                # logger.info('neg selected:%s' % selected)
                 if selected not in 'selected':
                     raise NoElementError
                 page = 1
@@ -299,7 +299,7 @@ def crawler_days(crawl_days, crawl_dates):
 
 def crawl_tmall_data(good_iid, main_data_queue, comment_data_queue, engine):
     global logger
-    logger = log.getLogger('spider_uv')
+    logger = log.getLogger('spider_process')
     logger.info('iid(%s) spider start' % good_iid)
     conn = engine.vertica_engine()
     with conn.cursor() as crsr:

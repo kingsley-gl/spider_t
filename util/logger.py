@@ -46,27 +46,27 @@ LOGGING = {
             'formatter':'info',
             'filename':'e:\\vip_spider\\log\\vip_spider.log',
         },
-        'file_sale': {
+        'file_spider': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'info',
-            'filename':'e:\\tmall_spider\\log\\crawl_sales.log',
+            'filename':'e:\\tmall_spider\\log\\spider.log',
         },
-        'file_uv': {
+        'file_database': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'info',
-            'filename': 'e:\\tmall_spider\\log\\crawl_uv.log',
+            'filename': 'e:\\tmall_spider\\log\\database.log',
         }
     },
     'loggers': {
-        'spider_sales': {
-            'handlers':[ 'file_sale'],
+        'spider_process': {
+            'handlers': ['console_debug', 'file_spider'],
             'propagate': True,
             'level':'INFO',
         },
-        'spider_uv': {
-            'handlers': ['console_debug', 'file_uv'],
+        'database_process': {
+            'handlers': ['console_debug', 'file_database'],
             'propagate': True,
             'level': 'INFO',
         },

@@ -17,7 +17,7 @@ from util.logger import log
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-logger = log.getLogger('spider_uv')
+logger = log.getLogger('database_process')
 
 def _class_logger(*dargs, **dkwargs):
     '''日志装饰器'''
