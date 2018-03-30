@@ -7,6 +7,8 @@
 # @Software: vip spider
 # @Function:
 
+import Tkinter as tk
+import tkFileDialog
 from util.get_engine import GetDBEngine
 import pandas as pd
 from multiprocessing import Process, Manager
@@ -15,15 +17,14 @@ import ConfigParser
 from spider.tmall_spider import crawl_tmall_data
 
 PROCESS_NUM = 5  # 进程数
-
+root = tk.Tk()
+root.withdraw()
 config = ConfigParser.ConfigParser()
 config.read('tmall.cfg')
 raw_file_save_path = config.get('Save_Path_Config', 'save_file_path_root')
 export_file_path = config.get('Export_Path_Config', 'export_path_root')
 engine = GetDBEngine(config)
-_process_alive = []  # 正在运行进程
-_processes_pool = []  # 所有进程
-_process_dead = []  # 已经运行进程，死进程
+
 
 def get_goods_id(good_sn):
     engine_vertica = engine.vertica_engine()
@@ -35,13 +36,27 @@ def get_goods_id(good_sn):
     return outer_goods_id
 
 
-if __name__ == '__main__':
-    print(u'爬虫运行开始')
+def read_file(name, chunk_size):
+    try:
+        file_obj = open(name)
+        file_obj.seek(0)
+        while True:
+            pos = file_obj.tell()
+            line = file_obj.read(chunk_size)
+            if line:
+                yield line
+            if pos == file_obj.tell():
+                break
+    finally:
+        file_obj.close()
+
+
+def spider(good_sn):
+    _process_alive = []  # 正在运行进程
+    _process_dead = []  # 已经运行进程，死进程
     manager = Manager()
     mq = manager.list()
     cq = manager.list()
-    # print(cq, mq)
-    good_sn = '8430820882'
     set_of_goods_id = get_goods_id(good_sn)
     _processes_pool = [Process(target=crawl_tmall_data,
                                kwargs={'good_iid': good_id,
@@ -65,8 +80,18 @@ if __name__ == '__main__':
                     _process_alive.remove(pa)
                     _process_dead.append(pa)
 
-
-    # print(u'爬虫运行结束')
     _process_db_1.join()
     _process_db_2.join()
+
+if __name__ == '__main__':
+    print(u'爬虫运行开始')
+    file_name = tkFileDialog.askopenfilename(filetypes=[("csvformat", "csv")])
+    lines = [line for line in read_file(file_name, 261120)]
+    lines = ''.join(lines)
+    lines = lines.replace('\n', '').split(',')
+    lines.remove('')
+    goods_sn = set(lines)
+    map(spider, goods_sn)
+    # print(u'爬虫运行结束')
+
 
