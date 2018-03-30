@@ -1,0 +1,16 @@
+altgraph==0.15
+dis3==0.1.2
+future==0.16.0
+macholib==1.9
+numpy==1.14.2
+pandas==0.22.0
+pefile==2017.11.5
+PyInstaller==3.3.1
+pyodbc==4.0.22
+pypiwin32==223
+python-dateutil==2.7.0
+pytz==2018.3
+pywin32==223
+selenium==3.11.0
+six==1.11.0
+xlrd==1.1.0
