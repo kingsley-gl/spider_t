@@ -4,5 +4,5 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    :
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:

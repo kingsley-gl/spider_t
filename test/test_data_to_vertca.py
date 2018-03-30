@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : test_file_to_vertica.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 
 from util.data_to_vertica import WriteMainDataPack

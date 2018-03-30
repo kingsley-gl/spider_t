@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : logger.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 
 import logging.config

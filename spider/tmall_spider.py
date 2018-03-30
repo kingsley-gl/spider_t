@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @Time    : 2018/03/15
+# @Time    : 2018/03/26
 # @Author  : kingsley kwong
 # @Site    :
-# @File    : vip_spider_download_salesfile.py
-# @Software: vip spider
+# @File    : tmall_spider.py
+# @Software: tmall spider
 # @Function:
 
 from selenium import webdriver

@@ -3,8 +3,8 @@
 # @Time    : 2018/03/15
 # @Author  : kingsley kwong
 # @Site    :
-# @File    : vip_spider_download_uvfile.py
-# @Software: vip spider
+# @File    : processsing_run.py
+# @Software: tmall spider
 # @Function:
 
 import Tkinter as tk

@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : get_engine.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 
 from .exceptions import DataBaseConnectError

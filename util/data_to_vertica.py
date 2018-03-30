@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @Time    : 2018/03/19
+# @Time    : 2018/03/28
 # @Author  : kingsley kwong
 # @Site    :
-# @File    : file_to_vertica.py
-# @Software: vip spider
+# @File    : data_to_vertica.py
+# @Software: tmall spider
 # @Function:
 
 import os

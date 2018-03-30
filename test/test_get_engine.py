@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : test_get_engine.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 
 import ConfigParser

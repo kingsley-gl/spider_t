@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : exception.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 import sys
 

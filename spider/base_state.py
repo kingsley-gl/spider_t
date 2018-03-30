@@ -4,7 +4,7 @@
 # @Author  : kingsley kwong
 # @Site    :
 # @File    : base_state.py
-# @Software: vip spider
+# @Software: tmall spider
 # @Function:
 from util.exceptions import NoElementError
 import inspect
