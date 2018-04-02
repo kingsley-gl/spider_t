@@ -83,6 +83,8 @@ def spider(good_sn):
     _process_db_1.join()
     _process_db_2.join()
 
+
+
 if __name__ == '__main__':
     print(u'爬虫运行开始')
     file_name = tkFileDialog.askopenfilename(filetypes=[("csvformat", "csv")])

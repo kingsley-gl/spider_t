@@ -23,6 +23,7 @@ global PRIMARY_KEY
 global URL
 global logger
 
+
 class DetailState(State):
     '''抓取商品详情状态'''
     logger_name = 'spider_process'
@@ -33,29 +34,28 @@ class DetailState(State):
         self.fail_state = self
         self.data_queue = main_data_queue
         self.parameters = {}
-        self.c_posi_tags = {}
-        self.c_neg_tags = {}
-        self.c_main_outer_id = None
+        self.crawl_posi_tags = {}
+        self.crawl_neg_tags = {}
+        self.crawl_main_outer_id = None
 
     def do(self, driver):
         global URL
-        c_main_product_url = URL
-        c_main_title = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
-                                             xpath="//title", operator='text')  # title 标题
-        c_main_shop = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_product_url = URL
+        crawl_main_title = driver.title # title 标题
+        crawl_main_shop = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                              xpath="//a[@class='shopLink']", operator='text')
-        c_main_shop_id = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_shop_id = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath="//div[@id='LineZing']", operator='get_attribute', key='shopid'))  # shop_id
-        c_main_collect_num = self.browser_operation(driver=driver, locate_way='find_element_by_id',
+        crawl_main_collect_num = self.browser_operation(driver=driver, locate_way='find_element_by_id',
                                xpath=r"J_CollectCount", operator='text')  # 人气收藏
-        c_main_collect_num = float(re.compile(r'[0-9]\d*').findall(c_main_collect_num)[0])  # 人气收藏数 去多余字符
-        c_price_price = {self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_collect_num = float(re.compile(r'[0-9]\d*').findall(crawl_main_collect_num)[0])  # 人气收藏数 去多余字符
+        crawl_price_price = {self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath=r"//div[@id='J_DetailMeta']/div/div/div/div[2]/dl/dt", operator='text'):  # 价格名
                              float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath=r"//div[@id='J_DetailMeta']/div/div/div/div[2]/dl/dd/span", operator='text'))}  # 价格
-        c_main_rate_num = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_rate_num = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath="//ul[@id='J_TabBar']/li[2]", operator='text')  # 总评论数
-        c_main_rate_num = float(re.compile(r'[0-9]\d*').findall(c_main_rate_num)[0])  # 总评论数 去多余字符
+        crawl_main_rate_num = float(re.compile(r'[0-9]\d*').findall(crawl_main_rate_num)[0])  # 总评论数 去多余字符
         if not self.parameters:
             i = 1
             while True:
@@ -63,7 +63,7 @@ class DetailState(State):
                     goods_name = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                         xpath="//ul[@id='J_AttrUL']/li[%s]" % i, operator='text')  # 商品详情
                     if u'货号:' in goods_name:
-                        self.c_main_outer_id = re.sub('[^a-zA-Z0-9]*', '', goods_name)  # 货号
+                        self.crawl_main_outer_id = re.sub('[^a-zA-Z0-9]*', '', goods_name)  # 货号
                         i += 1
                         continue
 
@@ -76,18 +76,19 @@ class DetailState(State):
 
         self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath="//ul[@id='J_TabBar']/li[2]", operator='click')  # 点击：评论
-        c_main_dsr_qual_score_avg = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_dsr_qual_score_avg = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath="//div[@id='J_Reviews']/div/div/div/strong", operator='text'))  # 与描述相符评分
-        c_main_pic_path = (self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+        crawl_main_pic_path = (self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                xpath="//img[@id='J_ImgBooth']", operator='get_attribute', key='src'))  # 首图url
+
         try:
-            c_main_selled_count_last_month = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+            crawl_main_selled_count_last_month = float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                       xpath="//div[@id='J_DetailMeta']/div/div/div/ul/li/div/span[2]",
                                                       operator='text'))  # 月销量
         except NoElementError:  # 页面没有月销量
             pass
         try:
-            c_price_promo_price = {self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
+            crawl_price_promo_price = {self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                  xpath="//dl[@id='J_PromoPrice']/dt", operator='text'):  # 促销价格名（新风尚价格）
                                        float(self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                                     xpath="//dl[@id='J_PromoPrice']/dd/div/span",
@@ -95,9 +96,9 @@ class DetailState(State):
         except NoElementError:  # 页面没有促销价格
             pass
         try:
-            c_main_stock = self.browser_operation(driver=driver, locate_way='find_element_by_id',
+            crawl_main_stock = self.browser_operation(driver=driver, locate_way='find_element_by_id',
                                xpath=r"J_EmStock", operator='text')  # 库存
-            c_main_stock = float(re.compile(r'[0-9]\d*').findall(c_main_stock)[0])  # 总评论数 去多余字符
+            crawl_main_stock = float(re.compile(r'[0-9]\d*').findall(crawl_main_stock)[0])  # 总评论数 去多余字符
         except NoElementError:  # 页面没有库存
             pass
         try:
@@ -110,7 +111,7 @@ class DetailState(State):
                                                       xpath="//span[@class='tag-posi']["+str(i)+"]/a", operator='text')
                     pos_value = re.compile(r'[0-9]\d*').findall(posi_tag)[0]
                     pos_tag = posi_tag.replace('(%s)' % pos_value, '')
-                    self.c_posi_tags.update({pos_tag: pos_value})
+                    self.crawl_posi_tags.update({pos_tag: pos_value})
                     i += 1
                 except NoElementError:
                     break
@@ -121,21 +122,21 @@ class DetailState(State):
                                                      xpath="//span[@class='tag-neg']["+str(j)+"]/a", operator='text')
                     neg_value = re.compile(r'[0-9]\d*').findall(neg_tag)[0]
                     neg_tag = neg_tag.replace('(%s)' % neg_value, '')
-                    self.c_neg_tags.update({neg_tag: neg_value})
+                    self.crawl_neg_tags.update({neg_tag: neg_value})
                     j += 1
                 except NoElementError:
                     break
         except NoElementError:  # 页面没有标签
             pass
         global GOOD_IID, PRIMARY_KEY
-        main_data_pack = {'c_good_iid': GOOD_IID, 'c_primary_key': str(PRIMARY_KEY)}
+        main_data_pack = {'crawl_good_iid': GOOD_IID, 'crawl_primary_key': str(PRIMARY_KEY)}
         for key in locals().keys():
-            if 'c_' in key:
+            if 'crawl_' in key:
                 main_data_pack.update({key: locals()[key]})
-        main_data_pack.update({'c_prop_parameters':self.parameters})
-        main_data_pack.update({'c_prop_posi_tag':self.c_posi_tags})
-        main_data_pack.update({'c_prop_neg_tag':self.c_neg_tags})
-        main_data_pack.update({'c_main_outer_id':self.c_main_outer_id})
+        main_data_pack.update({'crawl_prop_parameters':self.parameters})
+        main_data_pack.update({'crawl_prop_posi_tag':self.crawl_posi_tags})
+        main_data_pack.update({'crawl_prop_neg_tag':self.crawl_neg_tags})
+        main_data_pack.update({'crawl_main_outer_id':self.crawl_main_outer_id})
         global logger
         # logger.info('main_data_pack %s'%main_data_pack)
         self.data_queue.append(main_data_pack)  # 主数据包入队列
@@ -164,13 +165,15 @@ class CommentState(State):
                                                   xpath="//span[@class='tag-neg'][" + str(tag_cnt) + "]/a",
                                                   operator='get_attribute', key='class')
                 # logger.info('neg selected:%s' % selected)
+                time.sleep(1.0)
                 if selected not in 'selected':
                     raise NoElementError
                 page = 1
                 while True:  # 翻页循环
                     try:
                         i = 1   # floor
-                        c_eval_page_pack = []
+                        crawl_eval_page_pack = []
+                        crawl_img_page_pack = []
                         while True:  # 单页评论循坏
                             try:
                                 comment_flag = False  # 评论判断标志，有初评时，必然找不到评论
@@ -179,6 +182,8 @@ class CommentState(State):
                                 commt_append_rate_content = None
                                 commt_premiere_rate_reply = None
                                 commt_append_rate_reply = None
+                                src_premiere_img_src_path = []
+                                src_append_img_src_path = []
                                 try:
                                     commt_premiere_rate_content = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                            xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td[1]/div[@class='tm-rate-premiere']/div[@class='tm-rate-content']/div[@class='tm-rate-fulltxt']",
@@ -189,6 +194,31 @@ class CommentState(State):
                                     commt_append_rate_content = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                                  xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td[1]/div[@class='tm-rate-append']/div[@class='tm-rate-content']/div[@class='tm-rate-fulltxt']",
                                                                  operator='text')  # 追评
+                                    li = 1
+                                    while True:
+                                        try:
+                                            src_premiere_img_src_path.append(
+                                                self.browser_operation(driver=driver,
+                                                                       locate_way='find_element_by_xpath',
+                                                                       xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td[1]/div[@class='tm-rate-premiere']/div[@class='tm-rate-content']/div[@class='tm-m-photos']/ul/li["+str(li)+"]/img",
+                                                                       operator='text'))  # 初评买家秀
+                                            li += 1
+                                        except NoElementError:
+                                            # logger.info(src_premiere_img_src_path)
+                                            break
+                                    li = 1
+                                    while True:
+                                        try:
+                                            src_append_img_src_path.append(
+                                                self.browser_operation(driver=driver,
+                                                                       locate_way='find_element_by_xpath',
+                                                                       xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td[1]/div[@class='tm-rate-append']/div[@class='tm-rate-content']/div[@class='tm-m-photos']/ul/li["+str(li)+"]/img",
+                                                                       operator='get_attribute',
+                                                                       key='src'))  # 追评买家秀
+                                            li += 1
+                                        except NoElementError:
+                                            # logger.info(src_append_img_src_path)
+                                            break
                                 except NoElementError:
                                     comment_flag = True
                                     commt_premiere_rate_content = None
@@ -217,6 +247,19 @@ class CommentState(State):
                                     commt_premiere_rate_date = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                            xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td/div[2]",
                                                            operator='text')  # 评论日期
+                                    li = 1
+                                    while True:
+                                        try:
+                                            src_premiere_img_src_path.append(
+                                                self.browser_operation(driver=driver,
+                                                                       locate_way='find_element_by_xpath',
+                                                                       xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td/div/div[@class='tm-m-photos']/ul/li["+str(li)+"]/img",
+                                                                       operator='get_attribute',
+                                                                       key='src'))  # 评论买家秀
+                                            li += 1
+                                        except NoElementError:
+                                            # logger.info(src_premiere_img_src_path)
+                                            break
                                     try:
                                         commt_premiere_rate_reply = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                                            xpath="//div[@id='J_Reviews']/div/div[6]/table/tbody/tr["+str(i)+"]/td[1]/div[@class='tm-rate-reply']/div[@class='tm-rate-fulltxt']",
@@ -244,18 +287,24 @@ class CommentState(State):
                                 # logger.info(
                                 #     'iid: %s page: %s, floor: %s 追评解释:%s' % (GOOD_IID, page, i, commt_append_rate_reply))
                                 eval_floor_pack = {'floor': i}
+                                img_floor_pack = {'floor': i}
                                 i += 1
                                 for e_key in locals().keys():
                                     if 'commt_' in e_key:
                                         eval_floor_pack.update({e_key: locals()[e_key]})
-                                c_eval_page_pack.append(eval_floor_pack)
+                                    elif 'src_' in e_key:
+                                        img_floor_pack.update({e_key: locals()[e_key]})
+                                crawl_eval_page_pack.append(eval_floor_pack)
+                                crawl_img_page_pack.append(img_floor_pack)
                             except NoElementError:
                                 break
-                        if c_eval_page_pack:    # 防空包
+                        if crawl_eval_page_pack:    # 防空包
                             # global GOOD_IID, PRIMARY_KEY
-                            eval_data_pack = {'c_good_iid': GOOD_IID, 'c_primary_key': str(PRIMARY_KEY), 'c_page_id': ''.join(['%06d' % page, GOOD_IID])}
+                            eval_data_pack = {'crawl_good_iid': GOOD_IID,
+                                              'crawl_primary_key': str(PRIMARY_KEY),
+                                              'crawl_page_id': ''.join(['%06d' % page, GOOD_IID])}
                             for key in locals().keys():
-                                if 'c_' in key:
+                                if 'crawl_' in key:
                                     eval_data_pack.update({key: locals()[key]})
 
                             # logger.info('eval_data_pack %s' % eval_data_pack)
