@@ -63,7 +63,12 @@ class State(object):
             logger = log.getLogger(self.logger_name)
             logger.error(e)
             print('redo')
-            time.sleep(1.0)
+            time.sleep(2.0)
+            try:
+                driver.find_element_by_xpath("//a[@class='sufei-tb-dialog-close']").click()
+            except NoSuchElementException as e:
+                print(e)
+                pass
             return self.fail_state
 
 

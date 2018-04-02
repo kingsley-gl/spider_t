@@ -156,7 +156,6 @@ class WriteEvalDataPack(WriteDataBase):
 
     def __img_sql_format(self, crsr, img_pack, prop_dict):
         sql_sel = '''SELECT id FROM huimei.dc_platform_products_img_path WHERE rate_tr_id=%s''' % prop_dict['rate_tr_id']
-        logger.info('img formatter %s'%sql_sel)
         crsr.execute(sql_sel)
 
         tids = crsr.fetchall()
@@ -177,10 +176,8 @@ class WriteEvalDataPack(WriteDataBase):
                     sql = '''UPDATE dc_platform_products_img_path SET %s WHERE id=%s''' \
                           % (','.join(locals()[''.join(['row_col_', str(i)])] +
                                       ['='.join(item) for item in prop_dict.items()]), tids[i][0])
-                    logger.info(sql)
                 except Exception as e:
                     logger.error(e)
-            logger.info('img sql: %s' % sql)
             crsr.execute(sql)
 
 
