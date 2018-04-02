@@ -66,6 +66,8 @@ class State(object):
             time.sleep(2.0)
             try:
                 driver.find_element_by_xpath("//a[@class='sufei-tb-dialog-close']").click()
+                driver.find_element_by_xpath("//a[@class='sufei-tb-overlay-close']").click()
+                driver.find_element_by_xpath("//a[@class='sufei-tb-dialog-close sufei-tb-overlay-close']").click()
             except NoSuchElementException as e:
                 print(e)
                 pass

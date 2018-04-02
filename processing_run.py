@@ -7,7 +7,7 @@
 # @Software: tmall spider
 # @Function:
 
-
+import threading
 import Tkinter as tk
 import tkFileDialog
 from util.get_engine import GetDBEngine
