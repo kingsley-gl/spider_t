@@ -151,7 +151,7 @@ class DetailState(State):
         main_data_pack.update({'crawl_prop_neg_tag': self.crawl_neg_tags})
         main_data_pack.update({'crawl_main_outer_id': self.crawl_main_outer_id})
         global logger
-        logger.info('main_data_pack %s' % main_data_pack)
+        # logger.info('main_data_pack %s' % main_data_pack)
         if self.main_data_queue is not None:
             self.main_data_queue.put(main_data_pack)  # 主数据包入队列
             self.main_data_queue.put('close')  # 传入关闭进程指令

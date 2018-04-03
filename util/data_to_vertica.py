@@ -100,7 +100,7 @@ class WriteMainDataPack(WriteDataBase):
         columns = list()
         for key, item in main_data.items():
             if isinstance(item, float):
-                column = '='.join([key.replace('crawl_main_', ''),str(item)])
+                column = '='.join([key.replace('crawl_main_', ''), str(item)])
             else:
                 column = '='.join([key.replace('crawl_main_', ''), "'"+item+"'"])
             columns.append(column)
@@ -310,7 +310,7 @@ def write_db_process(q, work_cls, engine, task_num):
             # data = q.pop(0)
             data = q.get()
             logger.info('pipe-%s: packdata: data %s' % (wcls,  data))
-            logger.info('pipe-%s: %s data' % (wcls, q.qsize()))
+            logger.info('pipe-%s: size: %s' % (wcls, q.qsize()))
             if isinstance(data, dict):
                 wcls.work(data)
             elif isinstance(data, str):

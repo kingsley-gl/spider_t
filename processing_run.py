@@ -30,11 +30,11 @@ THREAD_NUM = int(config.get('THREAD_NUM', 'thread'))  # 线程数
 engine = GetDBEngine(config)
 
 
-def get_goods_id(good_sn):
+def get_goods_id(id_sn):
     engine_vertica = engine.vertica_engine()
     sql = '''SELECT outer_goods_id FROM huimei.e3_goods_outer_sku 
-                  WHERE kehu_id=3 AND lylx=1 AND goods_sn='%s'
-                  AND to_timestamp(approve_time)>'2018-02-01' ''' %good_sn
+                  WHERE kehu_id=%s AND lylx=1 AND goods_sn='%s'
+                  AND to_timestamp(approve_time)>'2018-02-01' ''' % (id_sn[1], id_sn[0])
     outer_goods_id = pd.read_sql(sql, engine_vertica)
     outer_goods_id = set(list(outer_goods_id['outer_goods_id']))
     return outer_goods_id
@@ -58,12 +58,12 @@ def read_file(name, chunk_size):
 def spider(good_sn):
     _process_alive = []  # 正在运行进程
     _process_dead = []  # 已经运行进程，死进程
-    # manager = Manager()
-    # mq = manager.list()
-    # cq = manager.list()
+    set_of_goods_id = get_goods_id(good_sn)
+    if not set_of_goods_id:
+        print(u'%s 该款号在数据源中不存在！' % (good_sn[0]))
+        return None
     mq = Queue()
     cq = Queue()
-    set_of_goods_id = get_goods_id(good_sn)
     _processes_pool = [Thread(target=crawl_tmall_data,
                                kwargs={'good_iid': good_id,
                                        'main_data_queue': mq,
@@ -93,13 +93,16 @@ def spider(good_sn):
 if __name__ == '__main__':
     print(u'爬虫运行开始')
     p = Pool(PROCESS_NUM)
-    file_name = tkFileDialog.askopenfilename(filetypes=[("csvformat", "csv")])
-    lines = [line for line in read_file(file_name, 261120)]
-    lines = ''.join(lines)
-    lines = lines.replace('\n', '').split(',')
-    lines.remove('')
-    goods_sn = set(lines)
-    p.map(spider, goods_sn)
+    file_name = tkFileDialog.askopenfilename(filetypes=[("xlsx format", "xlsx"), ("xls format", "xls")])
+    data = pd.read_excel(file_name,  na_values=['NA'])
+    data = data.drop_duplicates()
+
+    # lines = [line for line in read_file(file_name, 261120)]
+    # lines = ''.join(lines)
+    # lines = lines.replace('\n', '').split(',')
+    # lines.remove('')
+    # goods_sn = set(lines)
+    p.map(spider, (row for i, row in data.iterrows()))
     print(u'爬虫运行结束')
 
 

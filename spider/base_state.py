@@ -28,6 +28,8 @@ class State(object):
     def __init__(self):
         self.logger = log.getLogger(self.logger_name)
 
+    def __call__(self, *args, **kwargs):    # 多线程运行时，会把类声明当做函数运行
+        return self
 
     def _operate_logger(*dargs, **dkwargs):
         def _decorate(func):
@@ -63,6 +65,7 @@ class State(object):
 
     def do(self, driver):
         pass
+
 
     def work(self, driver):
         try:
