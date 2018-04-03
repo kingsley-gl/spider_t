@@ -8,7 +8,10 @@
 # @Function:
 
 import logging.config
+import ConfigParser
 
+config = ConfigParser.ConfigParser()
+config.read('tmall.cfg')
 
 
 LOGGING = {
@@ -50,13 +53,15 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'info',
-            'filename':'e:\\tmall_spider\\log\\spider.log',
+            # 'filename': 'e:\\tmall_spider\\log\\spider.log',
+            'filename': config.get('SPIDER_LOG', 'log_file_path'),
         },
         'file_database': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'info',
-            'filename': 'e:\\tmall_spider\\log\\database.log',
+            # 'filename': 'e:\\tmall_spider\\log\\database.log',
+            'filename': config.get('DATABASE_LOG', 'log_file_path'),
         }
     },
     'loggers': {
@@ -70,11 +75,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        'spider_info':{
-            'handlers': ['file','console_info'],
-            'propagate': True,
-            'level': 'INFO',
-        }
+        # 'spider_info':{
+        #     'handlers': ['file', 'console_info'],
+        #     'propagate': True,
+        #     'level': 'INFO',
+        # }
 
 
     }

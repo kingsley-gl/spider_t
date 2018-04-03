@@ -29,14 +29,17 @@ class DetailState(State):
     logger_name = 'spider_process'
     __name__ = 'Detail'
 
-    def __init__(self, main_data_queue, comment_data_queue):
-        self.success_state = CommentState(comment_data_queue)
+    def __init__(self, main_data_queue=None, comment_data_queue=None):
         self.fail_state = self
-        self.data_queue = main_data_queue
+        self.back_state = self
+        self.main_data_queue = main_data_queue
+        self.comment_data_queue = comment_data_queue
+        self.success_state = CommentState(comment_data_queue=self.comment_data_queue)
         self.parameters = {}
         self.crawl_posi_tags = {}
         self.crawl_neg_tags = {}
         self.crawl_main_outer_id = None
+        # super(State, self).__init__()
 
     def do(self, driver):
         global URL
@@ -139,8 +142,9 @@ class DetailState(State):
         main_data_pack.update({'crawl_main_outer_id':self.crawl_main_outer_id})
         global logger
         # logger.info('main_data_pack %s'%main_data_pack)
-        self.data_queue.append(main_data_pack)  # 主数据包入队列
-        self.data_queue.append('close')  # 传入关闭进程指令
+        if self.main_data_queue is not None:
+            self.main_data_queue.put(main_data_pack)  # 主数据包入队列
+            self.main_data_queue.put('close')  # 传入关闭进程指令
         return self.success_state
 
 class CommentState(State):
@@ -148,10 +152,13 @@ class CommentState(State):
     logger_name = 'spider_process'
     __name__ = 'Comment'
 
-    def __init__(self, data_queue):
+    def __init__(self, main_data_queue=None, comment_data_queue=None):
         self.success_state = None
         self.fail_state = self
-        self.data_queue = data_queue
+        self.back_state = DetailState
+        self.main_data_queue = main_data_queue
+        self.comment_data_queue = comment_data_queue
+        # super(State, self).__init__()
 
     def do(self, driver):
         global logger
@@ -308,7 +315,9 @@ class CommentState(State):
                                     eval_data_pack.update({key: locals()[key]})
 
                             # logger.info('eval_data_pack %s' % eval_data_pack)
-                            self.data_queue.append(eval_data_pack)  # 评论数据包入队列
+                            # self.data_queue.append(eval_data_pack)  # 评论数据包入队列
+                            if self.comment_data_queue is not None:
+                                self.comment_data_queue.put(eval_data_pack)  # 评论数据包入队列
                             self.browser_operation(driver=driver, locate_way='find_element_by_link_text',
                                                    xpath=u"下一页>>", operator='click')
                             page += 1
@@ -317,8 +326,9 @@ class CommentState(State):
                 tag_cnt += 1
             except NoElementError:
                 break
-        self.data_queue.append('close')  # 传入关闭指令
 
+        if self.comment_data_queue is not None:
+            self.comment_data_queue.put('close')  # 传入关闭指令
 
         return self.success_state
 

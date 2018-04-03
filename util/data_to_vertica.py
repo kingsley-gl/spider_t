@@ -159,18 +159,15 @@ class WriteEvalDataPack(WriteDataBase):
         crsr.execute(sql_sel)
 
         tids = crsr.fetchall()
-        logger.info(tids)
         for i, img in enumerate(img_pack):
 
             if len(tids) == 0:
-                logger.info('in else')
                 locals()[''.join(['row_col_', str(i)])] = img.keys()
                 locals()[''.join(['row_val_', str(i)])] = img.values()
                 sql = '''INSERT INTO huimei.dc_platform_products_img_path (%s) VALUES (%s)''' % (
                 ','.join(locals()[''.join(['row_col_', str(i)])] + prop_dict.keys() + ['img_sn']),
                 ','.join(locals()[''.join(['row_val_', str(i)])] + prop_dict.values() + [str(i+1)]))
             else:
-                logger.info('in tids')
                 locals()[''.join(['row_col_', str(i)])] = ['='.join(item) for item in img.items()]
                 try:
                     sql = '''UPDATE dc_platform_products_img_path SET %s WHERE id=%s''' \
@@ -310,14 +307,17 @@ def write_db_process(q, work_cls, engine, task_num):
     cnt = 0
     while True:
         try:
-            data = q.pop(0)
-            logger.info('pipe-%s: %s' % (wcls, len(q)))
+            # data = q.pop(0)
+            data = q.get()
+            # logger.info('pipe-%s: %s data %s' % (wcls, len(q), data))
+            logger.info('pipe-%s: %s data %s' % (wcls, q.qsize(), data))
             if isinstance(data, dict):
                 wcls.work(data)
             elif isinstance(data, str):
                 if 'close' in data:
                     cnt += 1
-                if cnt >= task_num and len(q) == 0:
+                if cnt >= task_num and q.empty():
+                # if cnt >= task_num and len(q) == 0:
                     logger.info('pipe-%s: write db process stop' % wcls)
                     break
         except IndexError:

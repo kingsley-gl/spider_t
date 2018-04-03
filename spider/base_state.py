@@ -17,9 +17,14 @@ class State(object):
     success_state = None
     fail_state = None
     logger_name = 'testing'
+    back_state = None
+    try_cnt = 0
+    main_data_queue = None
+    comment_data_queue = None
 
     def __init__(self):
         self.logger = log.getLogger(self.logger_name)
+
 
     def _operate_logger(*dargs, **dkwargs):
         def _decorate(func):
@@ -63,14 +68,14 @@ class State(object):
             logger = log.getLogger(self.logger_name)
             logger.error(e)
             print('redo')
+            self.try_cnt += 1
             time.sleep(2.0)
-            try:
-                driver.find_element_by_xpath("//a[@class='sufei-tb-dialog-close']").click()
-                driver.find_element_by_xpath("//a[@class='sufei-tb-overlay-close']").click()
-                driver.find_element_by_xpath("//a[@class='sufei-tb-dialog-close sufei-tb-overlay-close']").click()
-            except NoSuchElementException as e:
-                print(e)
-                pass
+            if self.try_cnt > 15:   # 30秒后刷新页面重试操作
+                driver.refresh()
+                driver.get(driver.current_url)
+                self.try_cnt = 0
+                return self.back_state(main_data_queue=self.main_data_queue,
+                                       comment_data_queue=self.comment_data_queue)
             return self.fail_state
 
 
