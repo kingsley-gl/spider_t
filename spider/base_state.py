@@ -14,6 +14,9 @@ import time
 
 
 class State(object):
+    primary_key = None
+    good_iid = None
+    url = None
     success_state = None
     fail_state = None
     logger_name = 'testing'
@@ -74,7 +77,10 @@ class State(object):
                 driver.refresh()
                 driver.get(driver.current_url)
                 self.try_cnt = 0
-                return self.back_state(main_data_queue=self.main_data_queue,
+                return self.back_state(primary_key=self.primary_key,
+                                       good_iid=self.good_iid,
+                                       url=self.url,
+                                       main_data_queue=self.main_data_queue,
                                        comment_data_queue=self.comment_data_queue)
             return self.fail_state
 

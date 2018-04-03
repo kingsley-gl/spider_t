@@ -18,8 +18,8 @@ from base_state import (State, WorkState)
 from util.logger import log
 import re
 TIMING = 2.0
-global GOOD_IID
-global PRIMARY_KEY
+
+
 global URL
 global logger
 
@@ -29,12 +29,23 @@ class DetailState(State):
     logger_name = 'spider_process'
     __name__ = 'Detail'
 
-    def __init__(self, main_data_queue=None, comment_data_queue=None):
+    def __init__(self,
+                 primary_key,
+                 good_iid,
+                 url,
+                 main_data_queue=None,
+                 comment_data_queue=None):
+        self.primary_key = primary_key
+        self.good_iid = good_iid
+        self.url = url
         self.fail_state = self
         self.back_state = self
         self.main_data_queue = main_data_queue
         self.comment_data_queue = comment_data_queue
-        self.success_state = CommentState(comment_data_queue=self.comment_data_queue)
+        self.success_state = CommentState(primary_key=self.primary_key,
+                                          good_iid=self.good_iid,
+                                          url=self.url,
+                                          comment_data_queue=self.comment_data_queue)
         self.parameters = {}
         self.crawl_posi_tags = {}
         self.crawl_neg_tags = {}
@@ -42,8 +53,8 @@ class DetailState(State):
         # super(State, self).__init__()
 
     def do(self, driver):
-        global URL
-        crawl_main_product_url = URL
+
+        crawl_main_product_url = self.url
         crawl_main_title = driver.title # title 标题
         crawl_main_shop = self.browser_operation(driver=driver, locate_way='find_element_by_xpath',
                                              xpath="//a[@class='shopLink']", operator='text')
@@ -131,28 +142,36 @@ class DetailState(State):
                     break
         except NoElementError:  # 页面没有标签
             pass
-        global GOOD_IID, PRIMARY_KEY
-        main_data_pack = {'crawl_good_iid': GOOD_IID, 'crawl_primary_key': str(PRIMARY_KEY)}
+        main_data_pack = {'crawl_good_iid': self.good_iid, 'crawl_primary_key': str(self.primary_key)}
         for key in locals().keys():
             if 'crawl_' in key:
                 main_data_pack.update({key: locals()[key]})
-        main_data_pack.update({'crawl_prop_parameters':self.parameters})
-        main_data_pack.update({'crawl_prop_posi_tag':self.crawl_posi_tags})
-        main_data_pack.update({'crawl_prop_neg_tag':self.crawl_neg_tags})
-        main_data_pack.update({'crawl_main_outer_id':self.crawl_main_outer_id})
+        main_data_pack.update({'crawl_prop_parameters': self.parameters})
+        main_data_pack.update({'crawl_prop_posi_tag': self.crawl_posi_tags})
+        main_data_pack.update({'crawl_prop_neg_tag': self.crawl_neg_tags})
+        main_data_pack.update({'crawl_main_outer_id': self.crawl_main_outer_id})
         global logger
-        # logger.info('main_data_pack %s'%main_data_pack)
+        logger.info('main_data_pack %s' % main_data_pack)
         if self.main_data_queue is not None:
             self.main_data_queue.put(main_data_pack)  # 主数据包入队列
             self.main_data_queue.put('close')  # 传入关闭进程指令
         return self.success_state
+
 
 class CommentState(State):
     '''抓取评论状态'''
     logger_name = 'spider_process'
     __name__ = 'Comment'
 
-    def __init__(self, main_data_queue=None, comment_data_queue=None):
+    def __init__(self,
+                 primary_key,
+                 good_iid,
+                 url,
+                 main_data_queue=None,
+                 comment_data_queue=None):
+        self.primary_key = primary_key
+        self.good_iid = good_iid
+        self.url = url
         self.success_state = None
         self.fail_state = self
         self.back_state = DetailState
@@ -162,7 +181,6 @@ class CommentState(State):
 
     def do(self, driver):
         global logger
-        global GOOD_IID, PRIMARY_KEY
         tag_cnt = 1  # 标签点击计数器
         while True:  # 点击负面标签循环
             try:
@@ -307,9 +325,9 @@ class CommentState(State):
                                 break
                         if crawl_eval_page_pack:    # 防空包
                             # global GOOD_IID, PRIMARY_KEY
-                            eval_data_pack = {'crawl_good_iid': GOOD_IID,
-                                              'crawl_primary_key': str(PRIMARY_KEY),
-                                              'crawl_page_id': ''.join(['%06d' % page, GOOD_IID])}
+                            eval_data_pack = {'crawl_good_iid': self.good_iid,
+                                              'crawl_primary_key': str(self.primary_key),
+                                              'crawl_page_id': ''.join(['%06d' % page, self.good_iid])}
                             for key in locals().keys():
                                 if 'crawl_' in key:
                                     eval_data_pack.update({key: locals()[key]})
@@ -358,6 +376,7 @@ def crawler_days(crawl_days, crawl_dates):
 
 def crawl_tmall_data(good_iid, main_data_queue, comment_data_queue, engine):
     global logger
+    url = r'https://detail.tmall.com/item.htm?id=%s' % good_iid
     logger = log.getLogger('spider_process')
     logger.info('iid(%s) spider start' % good_iid)
     conn = engine.vertica_engine()
@@ -369,19 +388,18 @@ def crawl_tmall_data(good_iid, main_data_queue, comment_data_queue, engine):
                             (SELECT iid, MAX(gmt_modified) AS maxgmt  FROM huimei.dc_platform_products_main  where iid=%s GROUP BY iid) a 
                             ON s.iid=a.iid 
                             where s.iid=%s 
-                            AND gmt_modified>=a.maxgmt''' % (good_iid,good_iid))
-            global PRIMARY_KEY
-            PRIMARY_KEY = crsr.fetchall()[0][0]
+                            AND gmt_modified>=a.maxgmt''' % (good_iid, good_iid))
+            primary_key = crsr.fetchall()[0][0]
     conn.close()
     proxy = load_proxy_2()
     b = firefox_with_proxy(proxy['host'], proxy['port'])
     b.set_page_load_timeout(120)
-    global URL
-    URL = r'https://detail.tmall.com/item.htm?id=%s' % good_iid
     b.get(r'https://detail.tmall.com/item.htm?id=%s' % good_iid)
-    global GOOD_IID
-    GOOD_IID = good_iid
-    w = WorkState(driver=b, default_state=DetailState(main_data_queue, comment_data_queue))
+    w = WorkState(driver=b, default_state=DetailState(primary_key,
+                                                      good_iid,
+                                                      url,
+                                                      main_data_queue,
+                                                      comment_data_queue))
     w.run()
     b.close()
     # logger.info('end spider_sales ')

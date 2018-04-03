@@ -309,13 +309,14 @@ def write_db_process(q, work_cls, engine, task_num):
         try:
             # data = q.pop(0)
             data = q.get()
-            # logger.info('pipe-%s: %s data %s' % (wcls, len(q), data))
-            logger.info('pipe-%s: %s data %s' % (wcls, q.qsize(), data))
+            logger.info('pipe-%s: packdata: data %s' % (wcls,  data))
+            logger.info('pipe-%s: %s data' % (wcls, q.qsize()))
             if isinstance(data, dict):
                 wcls.work(data)
             elif isinstance(data, str):
                 if 'close' in data:
                     cnt += 1
+                    logger.info('pipe-%s: close: %s task_num: %s' % (wcls, cnt, task_num))
                 if cnt >= task_num and q.empty():
                 # if cnt >= task_num and len(q) == 0:
                     logger.info('pipe-%s: write db process stop' % wcls)
