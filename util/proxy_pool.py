@@ -112,9 +112,9 @@ def load_proxy_1():
 
 def load_proxy_2():
 
-    proxyDictFile = os.getcwd() + '\\util\\proxyDict.data'                 # 这个代理字典需要定期维护更新，结构为 {"num" : "xxx.xxx.xxx.xxx:xxxx", ... }
-                                                                    # 通过google、百度，whatever途径获得
-    f = open(proxyDictFile, 'rb')
+    proxyDictFile = os.getcwd() + '\\util\\proxyDict.data'  # 这个代理字典需要定期维护更新，结构为 {"num" : "xxx.xxx.xxx.xxx:xxxx", ... }
+                                                            #  通过google、百度，whatever途径获得
+    f = open(proxyDictFile, 'r')
     proxyDict = pickle.load(f)
     f.close()
     proxy = proxyDict[str(random.randint(1, proxyDict.__len__()))]  # 随机选一个

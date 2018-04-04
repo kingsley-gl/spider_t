@@ -43,12 +43,6 @@ LOGGING = {
             'formatter':'info',
             'stream':'ext://sys.stdout',
         },
-        'file':{
-            'level':'INFO',
-            'class':'logging.FileHandler',
-            'formatter':'info',
-            'filename':'e:\\vip_spider\\log\\vip_spider.log',
-        },
         'file_spider': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
