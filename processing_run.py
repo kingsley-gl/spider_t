@@ -7,7 +7,6 @@
 # @Software: tmall spider
 # @Function:
 
-import os
 import ConfigParser
 from Queue import Queue
 from threading import Thread
@@ -15,26 +14,17 @@ import Tkinter as tk
 import tkFileDialog
 from util.get_engine import GetDBEngine
 import pandas as pd
-
-config = ConfigParser.ConfigParser()
-config.read('tmall.cfg')
-PROCESS_NUM = int(config.get('PROCESS_NUM', 'process'))  # 进程数
-THREAD_NUM = int(config.get('THREAD_NUM', 'thread'))  # 线程数
-path1 = config.get('SPIDER_LOG', 'log_file_path')
-path2 = config.get('DATABASE_LOG', 'log_file_path')
-path1 = os.path.abspath(os.path.dirname(path1))
-path2 = os.path.abspath(os.path.dirname(path2))
-if not os.path.exists(path1):
-    os.makedirs(path1)
-if not os.path.exists(path2):
-    os.makedirs(path2)
-
 from multiprocessing import Process, Pool
 from util.data_to_vertica import (write_db_process, WriteMainDataPack, WriteEvalDataPack)
 from spider.tmall_spider import crawl_tmall_data
 
 root = tk.Tk()
 root.withdraw()
+
+config = ConfigParser.ConfigParser()
+config.read('tmall.cfg')
+PROCESS_NUM = int(config.get('PROCESS_NUM', 'process'))  # 进程数
+THREAD_NUM = int(config.get('THREAD_NUM', 'thread'))  # 线程数
 engine = GetDBEngine(config)
 
 
@@ -98,19 +88,13 @@ def spider(good_sn):
     _process_db_2.join()
 
 
-# if __name__ == '__main__':
-#     print(u'爬虫运行开始')
-#     p = Pool(PROCESS_NUM)
-#     file_name = tkFileDialog.askopenfilename(filetypes=[("xlsx format", "xlsx"), ("xls format", "xls")])
-#     data = pd.read_excel(file_name,  na_values=['NA'])
-#     data = data.drop_duplicates()
-#
-#     # lines = [line for line in read_file(file_name, 261120)]
-#     # lines = ''.join(lines)
-#     # lines = lines.replace('\n', '').split(',')
-#     # lines.remove('')
-#     # goods_sn = set(lines)
-#     p.map(spider, (row for i, row in data.iterrows()))
-#     print(u'爬虫运行结束')
+if __name__ == '__main__':
+    print(u'爬虫运行开始')
+    p = Pool(PROCESS_NUM)
+    file_name = tkFileDialog.askopenfilename(filetypes=[("xlsx format", "xlsx"), ("xls format", "xls")])
+    data = pd.read_excel(file_name,  na_values=['NA'])
+    data = data.drop_duplicates()
+    p.map(spider, (row for i, row in data.iterrows()))
+    print(u'爬虫运行结束')
 
 

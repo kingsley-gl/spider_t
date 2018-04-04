@@ -9,10 +9,18 @@
 
 import logging.config
 import ConfigParser
+import os
 
 config = ConfigParser.ConfigParser()
 config.read('tmall.cfg')
-
+path1 = config.get('SPIDER_LOG', 'log_file_path')
+path2 = config.get('DATABASE_LOG', 'log_file_path')
+path1 = os.path.abspath(os.path.dirname(path1))
+path2 = os.path.abspath(os.path.dirname(path2))
+if not os.path.exists(path1):
+    os.makedirs(path1)
+if not os.path.exists(path2):
+    os.makedirs(path2)
 
 LOGGING = {
     'version': 1,
