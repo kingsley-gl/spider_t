@@ -25,14 +25,16 @@ config = ConfigParser.ConfigParser()
 config.read('tmall.cfg')
 PROCESS_NUM = int(config.get('PROCESS_NUM', 'process'))  # 进程数
 THREAD_NUM = int(config.get('THREAD_NUM', 'thread'))  # 线程数
+LAST_OPR_DATE = config.get('LAST_ADDED_OPR_DATE', 'date')
+PLATFORM = config.get('PLATFORM', 'type')
 engine = GetDBEngine(config)
 
 
 def get_goods_id(id_sn):
     engine_vertica = engine.vertica_engine()
     sql = '''SELECT outer_goods_id FROM huimei.e3_goods_outer_sku 
-                  WHERE kehu_id=%s AND lylx=1 AND goods_sn='%s'
-                  AND to_timestamp(approve_time)>'2018-02-01' ''' % (id_sn[1], id_sn[0])
+                  WHERE kehu_id=%s AND lylx=%s AND goods_sn='%s'
+                  AND to_timestamp(approve_time)>'%s' ''' % (id_sn[1], PLATFORM, id_sn[0], LAST_OPR_DATE)
     outer_goods_id = pd.read_sql(sql, engine_vertica)
     outer_goods_id = set(list(outer_goods_id['outer_goods_id']))
     return outer_goods_id
@@ -66,7 +68,8 @@ def spider(good_sn):
                                kwargs={'good_iid': good_id,
                                        'main_data_queue': mq,
                                        'comment_data_queue': cq,
-                                       'engine': engine}) for good_id in set_of_goods_id]
+                                       'engine': engine,
+                                       'platform': PLATFORM}) for good_id in set_of_goods_id]
     task_num = len(_processes_pool)
     _process_db_1 = Thread(target=write_db_process, args=[mq, WriteMainDataPack, engine, task_num])  # 写入主表进程
     _process_db_2 = Thread(target=write_db_process, args=[cq, WriteEvalDataPack, engine, task_num])  # 写入评论表进程

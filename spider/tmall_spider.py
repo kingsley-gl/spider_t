@@ -7,12 +7,11 @@
 # @Software: tmall spider
 # @Function:
 
-from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 import time
 import datetime
 from util.proxy_pool import (firefox_with_proxy, load_proxy_2)
-import os
 from util.exceptions import NoElementError
 from base_state import (State, WorkState)
 from util.logger import log
@@ -374,27 +373,43 @@ def crawler_days(crawl_days, crawl_dates):
         return crawl_dates
 
 
-def crawl_tmall_data(good_iid, main_data_queue, comment_data_queue, engine):
+def crawl_tmall_data(good_iid, main_data_queue, comment_data_queue, engine, platform):
     global logger
     url = r'https://detail.tmall.com/item.htm?id=%s' % good_iid
     logger = log.getLogger('spider_process')
     logger.info('iid(%s) spider start' % good_iid)
     conn = engine.vertica_engine()
     with conn.cursor() as crsr:
-        rowcount = crsr.execute('''INSERT INTO huimei.dc_platform_products_main (iid)
-                                      VALUES(%s);'''%good_iid)
-        if rowcount:
-            crsr.execute('''SELECT s.id  FROM huimei.dc_platform_products_main s INNER JOIN 
-                            (SELECT iid, MAX(gmt_modified) AS maxgmt  FROM huimei.dc_platform_products_main  where iid=%s GROUP BY iid) a 
-                            ON s.iid=a.iid 
-                            where s.iid=%s 
-                            AND gmt_modified>=a.maxgmt''' % (good_iid, good_iid))
-            primary_key = crsr.fetchall()[0][0]
+        crsr.execute('''SELECT id FROM huimei.dc_platform_products_main 
+                        WHERE iid=%s AND platform=%s''' % (good_iid, platform))
+        ret = crsr.fetchall()
+        if len(ret) == 0:
+            rowcount = crsr.execute('''INSERT INTO huimei.dc_platform_products_main (iid, platform)
+                                          VALUES(%s, %s);''' % (good_iid, platform))
+            if rowcount:
+
+                crsr.execute('''SELECT s.id  FROM huimei.dc_platform_products_main s INNER JOIN
+                                (SELECT iid, MAX(gmt_modified) AS maxgmt  FROM huimei.dc_platform_products_main  where iid=%s GROUP BY iid) a
+                                ON s.iid=a.iid
+                                where s.iid=%s
+                                AND gmt_modified>=a.maxgmt''' % (good_iid, good_iid))
+                ret = crsr.fetchall()
+        primary_key = ret[0][0]
     conn.close()
-    proxy = load_proxy_2()
-    b = firefox_with_proxy(proxy['host'], proxy['port'])
-    b.set_page_load_timeout(120)
-    b.get(r'https://detail.tmall.com/item.htm?id=%s' % good_iid)
+
+    def call_proxy():
+        try:
+            proxy = load_proxy_2()
+            b = firefox_with_proxy(proxy['host'], proxy['port'])
+            b.set_page_load_timeout(120)
+            b.get(r'https://detail.tmall.com/item.htm?id=%s' % good_iid)
+            return b
+        except TimeoutException:  # 超时换代理重试
+            logger.warning('proxy host:%s port:%s TimeOut loading page.Retry another proxy'
+                           % (proxy['host'], proxy['port']))
+            b.close()
+            return call_proxy()
+    b = call_proxy()
     w = WorkState(driver=b, default_state=DetailState(primary_key,
                                                       good_iid,
                                                       url,
